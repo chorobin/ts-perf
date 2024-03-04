@@ -176,15 +176,9 @@ export class FileRoute<
     >,
     TRouteContextReturn extends
       RouteConstraints['TRouteContext'] = RouteContext,
-    TRouteContext extends RouteConstraints['TRouteContext'] = [
-      TRouteContextReturn,
-    ] extends [never]
-      ? RouteContext
-      : TRouteContextReturn,
-    TAllContext extends Expand<
-      Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
-    > = Expand<
-      Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
+    TAllContext = Assign<
+      IsAny<TParentRoute['types']['allContext'], {}>,
+      TRouteContext
     >,
     TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
     TLoaderDeps extends Record<string, any> = {},

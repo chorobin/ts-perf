@@ -313,7 +313,7 @@ export interface LoaderFnContext<
   preload: boolean
   params: TAllParams
   deps: TLoaderDeps
-  context: Expand<Assign<TAllContext, TRouteContext>>
+  context: Assign<TAllContext, TRouteContext>
   location: ParsedLocation // Do not supply search schema here so as to demotivate people from trying to shortcut loaderDeps
   navigate: (opts: NavigateOptions<AnyRoute>) => Promise<void>
   parentMatchPromise?: Promise<void>
@@ -347,19 +347,17 @@ export type InferFullSearchSchemaInput<TRoute> = TRoute extends {
   ? TFullSearchSchemaInput
   : {}
 
-export type ResolveFullSearchSchema<TParentRoute, TSearchSchema> = Expand<
-  Assign<
-    Omit<InferFullSearchSchema<TParentRoute>, keyof RootSearchSchema>,
-    TSearchSchema
-  >
+export type ResolveFullSearchSchema<TParentRoute, TSearchSchema> = Assign<
+  InferFullSearchSchema<TParentRoute>,
+  TSearchSchema,
+  keyof RootSearchSchema
 >
 
 export type ResolveFullSearchSchemaInput<TParentRoute, TSearchSchemaUsed> =
-  Expand<
     Assign<
-      Omit<InferFullSearchSchemaInput<TParentRoute>, keyof RootSearchSchema>,
-      TSearchSchemaUsed
-    >
+    InferFullSearchSchemaInput<TParentRoute>,
+    TSearchSchemaUsed,
+    keyof RootSearchSchema
   >
 
 export interface AnyRoute
@@ -895,10 +893,9 @@ export function createRoute<
   ] extends [never]
     ? RouteContext
     : TRouteContextReturn,
-  TAllContext extends Expand<
-    Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
-  > = Expand<
-    Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
+  TAllContext extends RouteConstraints['TAllContext'] = Assign<
+    IsAny<TParentRoute['types']['allContext'], {}>,
+    TRouteContext
   >,
   TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
   TLoaderDeps extends Record<string, any> = {},
@@ -1050,7 +1047,7 @@ export class RootRoute<
   {}, // TAllParams
   TRouteContextReturn, // TRouteContextReturn
   TRouteContext, // TRouteContext
-  Expand<Assign<TRouterContext, TRouteContext>>, // TAllContext
+  Assign<TRouterContext, TRouteContext>, // TAllContext
   TRouterContext, // TRouterContext
   TLoaderDeps,
   TLoaderDataReturn,

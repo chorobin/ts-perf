@@ -61,7 +61,12 @@ export type IsUnion<T, U extends T = T> = (
 //   }
 // >
 
-export type Assign<Left, Right> = Omit<Left, keyof Right> & Right
+export type Assign<Left, Right, TExclude = never> = {
+  [TKey in Exclude<
+    keyof Left | keyof Right,
+    TExclude
+  >]: TKey extends keyof Right ? Right[TKey] : Left[TKey & keyof Left]
+}
 
 export type AssignAll<T extends any[]> = T extends [infer Left, ...infer Right]
   ? Right extends any[]
