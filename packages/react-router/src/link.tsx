@@ -2,8 +2,13 @@ import * as React from 'react'
 import { useMatch } from './Matches'
 import { useRouterState } from './useRouterState'
 import { useRouter } from './useRouter'
-import { Trim } from './fileRoute'
-import { AnyRoute, ReactNode, RootSearchSchema } from './route'
+import {
+  AnyRoute,
+  ReactNode,
+  RootSearchSchema,
+  TrimPathLeft,
+  TrimPathRight,
+} from './route'
 import { RouteByPath, RoutePaths, RoutePathsAutoComplete } from './routeInfo'
 import { RegisteredRouter } from './router'
 import { LinkProps, UseLinkPropsOptions } from './useNavigate'
@@ -51,13 +56,14 @@ export type Split<S, TIncludeTrailingSlash = true> = S extends unknown
       : never
   : never
 
-export type ParsePathParams<T extends string> = keyof {
-  [K in Trim<Split<T>[number], '_'> as K extends `$${infer L}`
-    ? L extends ''
-      ? '_splat'
-      : L
-    : never]: K
-}
+export type ParsePathParams<
+  T,
+  TAcc = never,
+> = T extends `${string}$${infer TPossiblyVariable}`
+  ? TPossiblyVariable extends `${infer TVariable}/${infer TRest}`
+    ? ParsePathParams<TRest, TAcc | TVariable>
+    : TAcc | TPossiblyVariable
+  : TAcc
 
 export type Join<T, Delimiter extends string = '/'> = T extends []
   ? ''
@@ -69,14 +75,6 @@ export type Join<T, Delimiter extends string = '/'> = T extends []
 
 export type Last<T extends any[]> = T extends [...infer _, infer L] ? L : never
 
-export type RemoveTrailingSlashes<T> = T extends `${infer R}/`
-  ? RemoveTrailingSlashes<R>
-  : T
-
-export type RemoveLeadingSlashes<T> = T extends `/${infer R}`
-  ? RemoveLeadingSlashes<R>
-  : T
-
 export type SearchPaths<
   TPaths,
   TSearchPath extends string,
@@ -86,16 +84,13 @@ export type SearchRelativePathAutoComplete<
   TTo extends string,
   TSearchPath extends string,
   TPaths,
-  SearchedPaths = SearchPaths<TPaths, TSearchPath>,
-> = SearchedPaths extends string ? `${TTo}/${SearchedPaths}` : never
+> = `${TTo}/${SearchPaths<TPaths, TSearchPath>}`
 
 export type RelativeToParentPathAutoComplete<
   TFrom extends string,
   TTo extends string,
   TPaths,
-  TResolvedPath extends string = RemoveTrailingSlashes<
-    ResolveRelativePath<TFrom, TTo>
-  >,
+  TResolvedPath extends string = TrimPathRight<ResolveRelativePath<TFrom, TTo>>,
 > =
   | SearchRelativePathAutoComplete<TTo, TResolvedPath, TPaths>
   | (TResolvedPath extends '' ? never : `${TTo}/../`)
@@ -106,7 +101,7 @@ export type RelativeToCurrentPathAutoComplete<
   TRestTo extends string,
   TPaths,
   TResolvedPath extends
-    string = RemoveTrailingSlashes<`${RemoveTrailingSlashes<TFrom>}/${RemoveLeadingSlashes<TRestTo>}`>,
+    string = TrimPathRight<`${TrimPathRight<TFrom>}/${TrimPathLeft<TRestTo>}`>,
 > = SearchRelativePathAutoComplete<TTo, TResolvedPath, TPaths>
 
 export type AbsolutePathAutoComplete<TFrom extends string, TPaths> =
@@ -114,10 +109,7 @@ export type AbsolutePathAutoComplete<TFrom extends string, TPaths> =
       ? './'
       : TFrom extends `/`
         ? never
-        : SearchPaths<
-              TPaths,
-              RemoveTrailingSlashes<TFrom>
-            > extends infer SearchedPaths
+        : SearchPaths<TPaths, TrimPathRight<TFrom>> extends infer SearchedPaths
           ? SearchedPaths extends ''
             ? never
             : './'
@@ -131,11 +123,11 @@ export type RelativeToPathAutoComplete<
   TTo extends string,
   TPaths = RoutePaths<TRouteTree>,
 > = TTo extends `..${string}`
-  ? RelativeToParentPathAutoComplete<TFrom, RemoveTrailingSlashes<TTo>, TPaths>
+  ? RelativeToParentPathAutoComplete<TFrom, TrimPathRight<TTo>, TPaths>
   : TTo extends `./${infer TRestTTo}`
     ? RelativeToCurrentPathAutoComplete<
         TFrom,
-        RemoveTrailingSlashes<TTo>,
+        TrimPathRight<TTo>,
         TRestTTo,
         TPaths
       >
@@ -201,7 +193,7 @@ export type ResolveRoute<
   TRouteTree extends AnyRoute,
   TFrom,
   TTo,
-  TPath = RemoveTrailingSlashes<
+  TPath = TrimPathRight<
     string extends TTo ? TFrom : ResolveRelativePath<TFrom, TTo>
   >,
 > =
