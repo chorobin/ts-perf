@@ -570,7 +570,7 @@ export class Route<
   in out TAllParams = ResolveAllParams<TParentRoute, TParams>,
   in out TRouteContextReturn extends
     RouteConstraints['TRouteContext'] = RouteContext,
-  in out TRouteContext = ResolveContext<TRouteContextReturn>,
+  in out TRouteContext = ResolveRouteContext<TRouteContextReturn>,
   in out TAllContext = Expand<
     Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
   >,
