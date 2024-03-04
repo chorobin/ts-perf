@@ -56,14 +56,13 @@ export type Split<S, TIncludeTrailingSlash = true> = S extends unknown
       : never
   : never
 
-export type ParsePathParams<
-  T,
-  TAcc = never,
-> = T extends `${string}$${infer TPossiblyVariable}`
-  ? TPossiblyVariable extends `${infer TVariable}/${infer TRest}`
-    ? ParsePathParams<TRest, TAcc | TVariable>
-    : TAcc | TPossiblyVariable
-  : TAcc
+export type ParsePathParams<T extends string> = keyof {
+  [K in Trim<Split<T>[number], '_'> as K extends `$${infer L}`
+    ? L extends ''
+      ? '_splat'
+      : L
+    : never]: K
+}
 
 export type Join<T, Delimiter extends string = '/'> = T extends []
   ? ''
