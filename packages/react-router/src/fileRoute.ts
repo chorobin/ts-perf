@@ -103,9 +103,9 @@ export type FileRoutePath<
   TParentRoute extends AnyRoute,
   TFilePath extends string,
 > =
-  ResolveFilePath<TParentRoute, TFilePath> extends `_${infer _}`
+  ResolveFilePath<TParentRoute, TFilePath> extends `_${string}`
     ? ''
-    : ResolveFilePath<TParentRoute, TFilePath> extends `/_${infer _}`
+    : ResolveFilePath<TParentRoute, TFilePath> extends `/_${string}`
       ? ''
       : ResolveFilePath<TParentRoute, TFilePath>
 
@@ -208,8 +208,7 @@ export class FileRoute<
       TRouterContext,
       TAllContext,
       TLoaderDeps,
-      TLoaderDataReturn,
-      TLoaderData
+      TLoaderDataReturn
     > &
       UpdatableRouteOptions<TAllParams, TFullSearchSchema, TLoaderData>,
   ): Route<
