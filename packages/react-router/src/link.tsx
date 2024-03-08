@@ -305,7 +305,7 @@ export type LinkOptions<
 export type CheckPath<TRouteTree extends AnyRoute, TPass, TFrom, TTo> =
   ResolveRoute<TRouteTree, TFrom, TTo> extends never
     ? string extends TFrom
-      ? RemoveTrailingSlashes<TTo> extends '.' | '..'
+      ? TrimPathRight<TTo> extends '.' | '..'
         ? TPass
         : CheckPathError<TRouteTree>
       : CheckPathError<TRouteTree>
