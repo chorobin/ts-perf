@@ -13,6 +13,7 @@ import {
   Assign,
   Expand,
   IsAny,
+  IsNever,
   NoInfer,
   PickRequired,
   UnionToIntersection,
@@ -67,9 +68,11 @@ export type RouteOptions<
   TAllContext = AnyContext,
   TLoaderDeps extends Record<string, any> = {},
   TLoaderDataReturn extends any = unknown,
-  TLoaderData extends any = [TLoaderDataReturn] extends [never]
-    ? undefined
-    : TLoaderDataReturn,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
 > = BaseRouteOptions<
   TParentRoute,
   TCustomId,
@@ -179,7 +182,12 @@ export type BaseRouteOptions<
   TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
   TAllContext = AnyContext,
   TLoaderDeps extends Record<string, any> = {},
-  TLoaderData extends any = unknown,
+  TLoaderDataReturn extends any = unknown,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
 > = RoutePathOptions<TCustomId, TPath> &
   FileBaseRouteOptions<
     TParentRoute,
@@ -531,11 +539,11 @@ export class RouteApi<
   }
 }
 
-export type ResolveRouteContext<TRouteContextReturn> = [
+export type ResolveRouteContext<TRouteContextReturn> = IsNever<
   TRouteContextReturn,
-] extends [never]
-  ? RouteContext
-  : TRouteContextReturn
+  RouteContext,
+  TRouteContextReturn
+>
 
 export type ResolveSearchSchemaUsed<TSearchSchemaInput, TSearchSchema> =
   TSearchSchemaInput extends SearchSchemaInput
@@ -576,6 +584,7 @@ export class Route<
   >,
   in out TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
   in out TLoaderDeps extends Record<string, any> = {},
+  in out TLoaderDataReturn extends any = unknown,
   in out TLoaderData extends any = unknown,
   in out TChildren extends RouteConstraints['TChildren'] = unknown,
   in out TRouteTree extends RouteConstraints['TRouteTree'] = AnyRoute,
@@ -904,11 +913,8 @@ export function createRoute<
     TParams
   >,
   TRouteContextReturn extends RouteConstraints['TRouteContext'] = RouteContext,
-  TRouteContext extends RouteConstraints['TRouteContext'] = [
-    TRouteContextReturn,
-  ] extends [never]
-    ? RouteContext
-    : TRouteContextReturn,
+  TRouteContext extends
+    RouteConstraints['TRouteContext'] = ResolveRouteContext<TRouteContextReturn>,
   TAllContext extends RouteConstraints['TAllContext'] = Assign<
     IsAny<TParentRoute['types']['allContext'], {}>,
     TRouteContext
@@ -916,9 +922,11 @@ export function createRoute<
   TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
   TLoaderDeps extends Record<string, any> = {},
   TLoaderDataReturn extends any = unknown,
-  TLoaderData extends any = [TLoaderDataReturn] extends [never]
-    ? undefined
-    : TLoaderDataReturn,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
   TChildren extends RouteConstraints['TChildren'] = unknown,
   TRouteTree extends RouteConstraints['TRouteTree'] = AnyRoute,
 >(
@@ -975,14 +983,15 @@ export function createRootRouteWithContext<TRouterContext extends {}>() {
     TSearchSchema extends Record<string, any> = RootSearchSchema,
     TSearchSchemaUsed extends Record<string, any> = RootSearchSchema,
     TRouteContextReturn extends RouteContext = RouteContext,
-    TRouteContext extends RouteContext = [TRouteContextReturn] extends [never]
-      ? RouteContext
-      : TRouteContextReturn,
+    TRouteContext extends
+      RouteContext = ResolveRouteContext<TRouteContextReturn>,
     TLoaderDeps extends Record<string, any> = {},
     TLoaderDataReturn extends any = unknown,
-    TLoaderData extends any = [TLoaderDataReturn] extends [never]
-      ? undefined
-      : TLoaderDataReturn,
+    TLoaderData extends any = IsNever<
+      TLoaderDataReturn,
+      undefined,
+      TLoaderDataReturn
+    >,
   >(
     options?: Omit<
       RouteOptions<
@@ -1039,15 +1048,15 @@ export class RootRoute<
   TSearchSchema extends Record<string, any> = RootSearchSchema,
   TSearchSchemaUsed extends Record<string, any> = RootSearchSchema,
   TRouteContextReturn extends RouteContext = RouteContext,
-  TRouteContext extends RouteContext = [TRouteContextReturn] extends [never]
-    ? RouteContext
-    : TRouteContextReturn,
+  TRouteContext extends RouteContext = ResolveRouteContext<TRouteContextReturn>,
   TRouterContext extends {} = {},
   TLoaderDeps extends Record<string, any> = {},
   TLoaderDataReturn extends any = unknown,
-  TLoaderData extends any = [TLoaderDataReturn] extends [never]
-    ? undefined
-    : TLoaderDataReturn,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
 > extends Route<
   any, // TParentRoute
   '/', // TPath
@@ -1112,15 +1121,15 @@ export function createRootRoute<
   TSearchSchema extends Record<string, any> = RootSearchSchema,
   TSearchSchemaUsed extends Record<string, any> = RootSearchSchema,
   TRouteContextReturn extends RouteContext = RouteContext,
-  TRouteContext extends RouteContext = [TRouteContextReturn] extends [never]
-    ? RouteContext
-    : TRouteContextReturn,
+  TRouteContext extends RouteContext = ResolveRouteContext<TRouteContextReturn>,
   TRouterContext extends {} = {},
   TLoaderDeps extends Record<string, any> = {},
   TLoaderDataReturn extends any = unknown,
-  TLoaderData extends any = [TLoaderDataReturn] extends [never]
-    ? undefined
-    : TLoaderDataReturn,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
 >(
   options?: Omit<
     RouteOptions<
@@ -1274,17 +1283,18 @@ export class NotFoundRoute<
   >,
   TRouteContextReturn extends RouteConstraints['TRouteContext'] = AnyContext,
   TRouteContext extends RouteConstraints['TRouteContext'] = RouteContext,
-  TAllContext extends Expand<
-    Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
-  > = Expand<
-    Assign<IsAny<TParentRoute['types']['allContext'], {}>, TRouteContext>
+  TAllContext = Assign<
+    IsAny<TParentRoute['types']['allContext'], {}>,
+    TRouteContext
   >,
   TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
   TLoaderDeps extends Record<string, any> = {},
   TLoaderDataReturn extends any = unknown,
-  TLoaderData extends any = [TLoaderDataReturn] extends [never]
-    ? undefined
-    : TLoaderDataReturn,
+  TLoaderData extends any = IsNever<
+    TLoaderDataReturn,
+    undefined,
+    TLoaderDataReturn
+  >,
   TChildren extends RouteConstraints['TChildren'] = unknown,
   TRouteTree extends RouteConstraints['TRouteTree'] = AnyRoute,
 > extends Route<

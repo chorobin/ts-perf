@@ -2,6 +2,9 @@ import * as React from 'react'
 
 export type NoInfer<T> = [T][T extends any ? 0 : never]
 export type IsAny<T, Y, N = T> = 1 extends 0 & T ? Y : N
+
+export type IsNever<T, Y, N> = [T] extends [never] ? Y : N
+
 export type PickAsRequired<T, K extends keyof T> = Omit<T, K> &
   Required<Pick<T, K>>
 

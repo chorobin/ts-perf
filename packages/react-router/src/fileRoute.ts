@@ -20,7 +20,7 @@ import {
   AnyPathParams,
   AnySearchSchema,
 } from './route'
-import { Assign, Expand, IsAny } from './utils'
+import { Assign, Expand, IsAny, IsNever } from './utils'
 import { useMatch, useLoaderDeps, useLoaderData, RouteMatch } from './Matches'
 import { useSearch } from './useSearch'
 import { useParams } from './useParams'
@@ -189,9 +189,11 @@ export class FileRoute<
     TRouterContext extends RouteConstraints['TRouterContext'] = AnyContext,
     TLoaderDeps extends Record<string, any> = {},
     TLoaderDataReturn extends any = unknown,
-    TLoaderData extends any = [TLoaderDataReturn] extends [never]
-      ? undefined
-      : TLoaderDataReturn,
+    TLoaderData extends any = IsNever<
+      TLoaderDataReturn,
+      undefined,
+      TLoaderDataReturn
+    >,
     TChildren extends RouteConstraints['TChildren'] = unknown,
     TRouteTree extends RouteConstraints['TRouteTree'] = AnyRoute,
   >(
